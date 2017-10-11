@@ -11,14 +11,14 @@ RUN echo "jenkins ALL=NOPASSWD: ALL" >> /etc/sudoers
 RUN cd ~ &&\
     curl -sL https://deb.nodesource.com/setup_6.x -o nodesource_setup.sh &&\
     bash nodesource_setup.sh &&\
-    apt-get install nodejs &&\
+    apt-get install nodejs -y &&\
     npm install -g yarn
 
 # install java
-RUN apt-get install default-jdk
+RUN apt-get install default-jdk -y
 
 # install maven
-RUN apt-get install maven
+RUN apt-get install maven -y
  
 USER jenkins
 
