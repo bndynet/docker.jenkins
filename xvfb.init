@@ -8,7 +8,7 @@ PROG_OUTPUT="/tmp/Xvfb.out"
 
 case "$1" in
     start)
-        echo -n "Starting : X Virtual Frame Buffer "
+        echo "Starting : X Virtual Frame Buffer "
         mkdir -p /tmp/.X11-unix
         sudo chmod 1777 /tmp/.X11-unix
         sudo chown root /tmp/.X11-unix/
@@ -16,7 +16,7 @@ case "$1" in
         disown -ar
    		;;
     stop)
-        echo -n "Shutting down : X Virtual Frame Buffer"
+        echo "Shutting down : X Virtual Frame Buffer"
         pid=`pgrep -f Xvfb`
         kill -9 $pid
         RETVAL=$?

@@ -24,7 +24,15 @@ ADD xvfb.init /etc/init.d/xvfb
 RUN chmod +x /etc/init.d/xvfb
 RUN update-rc.d xvfb defaults
 
-# install node and yarn
+# append starting script to ENTRYPOINT file for xvfb
+ARG entrypoint="/usr/local/bin/jenkins.sh"
+RUN echo "#! /bin/bash -e\n\
+service xvfb start\n\
+export DISPLAY=:10\n\
+echo '============================================'" | cat - ${entrypoint} > temp && mv temp ${entrypoint}
+RUN chmod +x ${entrypoint}
+
+# install nodejs and yarn
 RUN cd ~ &&\
     curl -sL https://deb.nodesource.com/setup_6.x -o nodesource_setup.sh &&\
     bash nodesource_setup.sh &&\
@@ -35,7 +43,7 @@ RUN cd ~ &&\
 # RUN apt-get install default-jdk -y
 
 # install maven
-# RUN apt-get install maven -y
+RUN apt-get install maven -y
 
 # Clean clears out the local repository of retrieved package files. Run apt-get clean from time to time to free up disk space.
 RUN apt-get clean \
