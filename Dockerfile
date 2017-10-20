@@ -13,8 +13,6 @@ RUN echo "jenkins ALL=NOPASSWD: ALL" >> /etc/sudoers
 RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
 RUN apt-get update
-# RUN apt-get -y install libxpm4 libxrender1 libgtk2.0-0 libnss3 libgconf-2-4
-# RUN apt-get -y install xfonts-cyrillic xfonts-100dpi xfonts-75dpi xfonts-base xfonts-scalable
 RUN apt-get -y install google-chrome-stable
 
 # install xvfb(X Virtual Frame Buffer) for browser testing
@@ -32,15 +30,14 @@ export DISPLAY=:10\n\
 echo '============================================'" | cat - ${entrypoint} > temp && mv temp ${entrypoint}
 RUN chmod +x ${entrypoint}
 
-# install nodejs and yarn
+# install nodejs, yarn
 RUN cd ~ &&\
     curl -sL https://deb.nodesource.com/setup_6.x -o nodesource_setup.sh &&\
     bash nodesource_setup.sh &&\
     apt-get install nodejs -y &&\
     npm install -g yarn
-
-# install java
-# RUN apt-get install default-jdk -y
+# install nvm plugin for node version management
+RUN /usr/local/bin/install-plugins.sh nvm-wrapper
 
 # install maven
 RUN apt-get install maven -y
