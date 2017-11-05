@@ -1,6 +1,6 @@
 # ![](https://www.docker.com/favicon/favicon-32x32.png)  Jenkins Docker image
 
-Jenkins with nvm wrapper plugin, and integrated chrome, xvfb, nodejs and yarn.
+Jenkins with nvm wrapper plugin, and integrated chrome, xvfb, nodejs, nvm and yarn.
 
 ## How to use this image
 
@@ -11,10 +11,10 @@ Jenkins with nvm wrapper plugin, and integrated chrome, xvfb, nodejs and yarn.
 
 Below will store the workspace in /var/jenkins_home. All Jenkins data lives in there - including plugins and configuration. You will probably want to make that a persistent volume (recommended):
 
-> docker run --name my-jenkins -p 8080:8080 -p 50000:50000 [-v /your/home:/var/jenkins_home] jenkins
+> docker run --name my-jenkins -p 8080:8080 -p 50000:50000 [-v /your/home:/var/jenkins_home] bndynet/jenkins
 
 **Run bash**
-> docker exec -it [image] bash
+> docker exec -it my-jenkins bash
 
 **Misc**
 
