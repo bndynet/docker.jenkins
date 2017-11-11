@@ -5,9 +5,20 @@ LABEL maintainer="Bendy Zhang <zb@bndy.net>"
 USER root
 
 RUN apt-get update &&\
-    apt-get install -y sudo apt-utils &&\
+    apt-get -y install sudo apt-utils &&\
     rm -rf /var/lib/apt/lists/*
 RUN echo "jenkins ALL=NOPASSWD: ALL" >> /etc/sudoers
+
+# install dotnet
+ARG DOTNET_VERSION
+ENV DOTNET_VERSION ${DOTNET_VERSION:-2.0.2}
+RUN apt-get update
+RUN apt-get -y install curl libunwind8 gettext apt-transport-https
+RUN curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
+RUN mv microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg
+RUN sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-debian-stretch-prod stretch main" > /etc/apt/sources.list.d/dotnetdev.list'
+RUN apt-get update
+RUN apt-get -y install dotnet-sdk-${DOTNET_VERSION}
 
 # install chrome
 RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list
@@ -17,7 +28,7 @@ RUN apt-get -y install google-chrome-stable
 
 # install xvfb(X Virtual Frame Buffer) for browser testing
 RUN apt-get update
-RUN apt-get install -y xvfb
+RUN apt-get -y install xvfb
 ADD xvfb.init /etc/init.d/xvfb
 RUN chmod +x /etc/init.d/xvfb
 RUN update-rc.d xvfb defaults
@@ -34,13 +45,13 @@ RUN chmod +x ${entrypoint}
 RUN cd ~ &&\
     curl -sL https://deb.nodesource.com/setup_6.x -o nodesource_setup.sh &&\
     bash nodesource_setup.sh &&\
-    apt-get install nodejs -y &&\
+    apt-get -y install nodejs &&\
     npm install -g yarn
 # install nvm plugin for node version management
 RUN /usr/local/bin/install-plugins.sh nvm-wrapper
 
 # install maven
-RUN apt-get install maven -y
+RUN apt-get -y install maven
 
 # Clean clears out the local repository of retrieved package files. Run apt-get clean from time to time to free up disk space.
 RUN apt-get clean \
