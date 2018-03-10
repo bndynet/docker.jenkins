@@ -1,0 +1,43 @@
+node {
+    print params
+
+    if (params.MultiLines) {
+      params.MultiLines.split("\\r?\\n").each {
+        if (it.trim()) {
+          echo '-->' + it
+        }
+      }
+    }
+
+    // clean workspace
+    cleanWs()
+
+    try {
+      docker.image('node:14').inside {
+        stage("Source code") {
+            git branch: Git_Branch, credentialsId: Cred_ID, url: Git_Url
+        }
+        stage('Install packages') {
+            sh 'npm i'
+        }
+        stage('Checks') {
+          // TODO
+        }
+        stage('Test') {
+          if (params.Skip_Test == 'false') {
+            // TODO
+          } else {
+            echo 'Skip test'
+          }
+        }
+        stage('Deploy') {
+          if (params.Skip_Deploy == 'false') {
+            // TODO
+          } else {
+            echo 'Skip deploy'
+          }
+        }
+    }
+    }
+
+}
