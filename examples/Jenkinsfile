@@ -1,11 +1,14 @@
 node {
-  print '✋' + params
-	print params.anything_to_undefined     // output: null
+  print 'params👉' + params
+	print "params.anything_to_undefined👉" + params.anything_to_undefined     // output: null
+
+  def v = params.anything_to_undefined ?: 'default-value'
+  print "params.anything_to_undefined ?: 'default-value'👉" + v
 
   if (params.MultiLines) {
     params.MultiLines.split("\\r?\\n").each {
       if (it.trim()) {
-        echo '✋-->' + it
+        echo 'params.MultiLines.split("\\r?\\n").each👉' + it
       }
     }
   }
@@ -19,6 +22,9 @@ node {
         //git branch: Git_Branch, credentialsId: Cred_ID, url: Git_Url
       }
       stage('Install packages') {
+        // withNPM(npmrcConfig: 'npmrc') {
+        //   sh 'npm install'
+        // }
         sh 'npm i'
       }
       stage('Checks') {

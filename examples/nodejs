@@ -1,0 +1,145 @@
+pipeline {
+    parameters {
+        string(name: 'AGENT', defaultValue: '', description: 'Agent to run this job')
+        string(name: 'NODEJS_VERSION', defaultValue: 'latest', description: 'The node.js version')
+        string(name: 'GIT_URL', defaultValue: '', description: 'The git repo address')
+        string(name: 'GIT_BRANCH', defaultValue: 'main', description: 'Branch to build')
+        string(name: 'GIT_CRED', defaultValue: '', description: 'The credential id for pulling the source code from git')
+        choice(name: 'ENVIRONMENT', choices: ['development', 'staging', 'production'], description: 'Deployment environment')
+        booleanParam(name: 'RUN_TESTS', defaultValue: true, description: 'Whether to run tests')
+    }
+
+    agent {
+        label params.AGENT // Ensure you have podman installed on a Jenkins agent
+    }
+    
+    environment {
+        NODE_IMAGE = "node:${params.NODEJS_VERSION}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    def branch = params.GIT_BRANCH.trim()
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: '*/${branch}']],
+                        userRemoteConfigs: [[
+                            url: '${params.GIT_URL}',
+                            credentialsId: '${params.GIT_CRED}'
+                        ]],
+                        extensions: [
+                            [$class: 'CloneOption', depth: 1, noTags: true] 
+                        ]
+                    ])
+                }
+            }
+        }
+
+        stage('Prepare Environment') {
+            steps {
+                script {
+                    sh '''
+                        podman pull ${NODE_IMAGE}
+                        podman run --rm -v ${PWD}:/app -w /app ${NODE_IMAGE} npm install
+                    '''
+                }
+            }
+        }
+
+        stage('Run Tests') {
+            when {
+                expression { return params.RUN_TESTS }
+            }
+            steps {
+                script {
+                    sh '''
+                        podman run --rm -v ${PWD}:/app -w /app ${NODE_IMAGE} npm test
+                    '''
+                }
+            }
+        }
+
+
+        stage('Build') {
+            steps {
+                script {
+                    sh '''
+                        podman run --rm -v ${PWD}:/app -w /app ${NODE_IMAGE} npm run build
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo "Deploying to Environment: ${params.ENVIRONMENT}"
+                // Add deployment steps based on the environment
+                script {
+                    if (params.ENVIRONMENT == 'production') {
+                        // Production deployment steps
+                        sh 'echo Deploying to production...'
+
+                        sshAgent(credentials: ['your-ssh-key-id']) {
+                            sh 'scp /path/to/local/file user@remote:/path/to/remote/destination'
+                        }
+                    } else {
+                        // Development or staging deployment steps
+                        sh "echo Deploying to ${params.ENVIRONMENT}..."
+                        sh '''
+                            cp -r ${PWD}/dist/ ~/wwwroot/
+                            chmod -R 755 ~/wwwroot/
+                            podman pull nginx
+                            podman run --name app-nginx -v ${PWD}/dist:/usr/share/nginx/html:ro -p 8080:80 -d nginx
+                        '''
+                    }
+                }
+            }
+        }
+    }
+
+
+    post {
+        always {
+            cleanWs()
+            echo 'Completed to clean up workspace'
+        }
+        success {
+            echo 'Pipeline completed successfully!'
+            echo 'changes: ' + getChanges()
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+    }
+}
+
+def getChanges() {
+    MAX_MSG_LEN = 100
+    MAX_CHANGES_LEN = 10
+    def changes = ""
+    def changesCount = 0
+
+    echo "Gathering SCM changes"
+    def changeLogSets = currentBuild.changeSets
+    for (int i = 0; i < changeLogSets.size(); i++) {
+        def entries = changeLogSets[i].items
+        for (int j = entries.length - 1; j > -1; j--) {
+            changesCount++
+            if (changesCount > MAX_CHANGES_LEN) {
+                changes += "- ..."
+                break
+            }
+            
+            def entry = entries[j]
+            def truncated_msg = entry.msg.take(MAX_MSG_LEN)
+            changes += "- ${truncated_msg} [${entry.author}] \n"
+        }
+    }
+
+    if (!changes) {
+        changes = "*No changes*"
+    }
+    return changes
+}

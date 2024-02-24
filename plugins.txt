@@ -15,9 +15,13 @@ timestamper
 pipeline-stage-view
 
 rebuild
+job-import-plugin
 remote-file
 ssh-agent
 ssh-credentials
 ssh-slaves
 workflow-scm-step
 ws-cleanup
+
+config-file-provider
+pipeline-npm
