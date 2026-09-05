@@ -16,8 +16,6 @@ timestamper
 pipeline-stage-view
 
 rebuild
-job-import-plugin
-remote-file
 ssh-agent
 ssh-credentials
 ssh-slaves

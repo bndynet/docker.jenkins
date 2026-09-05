@@ -1,4 +1,4 @@
-FROM jenkins/jenkins
+FROM jenkins/jenkins:lts-jdk21
 LABEL maintainer="Bendy Zhang <zb@bndy.net>"
 
 # Skip initial setup

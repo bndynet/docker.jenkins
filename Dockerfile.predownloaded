@@ -1,0 +1,14 @@
+FROM jenkins/jenkins:lts-jdk21
+LABEL maintainer="Bendy Zhang <zb@bndy.net>"
+
+# Skip initial setup
+ENV JAVA_OPTS -Djenkins.install.runSetupWizard=false
+
+COPY init.groovy.d/executors.groovy /usr/share/jenkins/ref/init.groovy.d/
+COPY init.groovy.d/startup-properties.groovy /usr/share/jenkins/ref/init.groovy.d/
+
+# install plugins (pre-downloaded on the host by sync-plugins.py)
+COPY plugins/ /usr/share/jenkins/ref/plugins/
+
+# drop back to the regular jenkins user - good practice
+USER jenkins
